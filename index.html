@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8faff">
+  <meta name="description" content="Gestor de tareas personal con calendario y planificación para los próximos siete días.">
+  <title>En orden · Gestor de tareas</title>
+  <style>
+    :root{--ink:#17243d;--muted:#69758c;--blue:#4b64e8;--blue-dark:#344ccd;--blue-soft:#eef1ff;--line:#e8ebf2;--bg:#f7f9fd;--white:#fff;--green:#198c69;--amber:#bd781f;--red:#c34e55;--radius:18px}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5}
+    button,input,select,textarea{font:inherit}button{cursor:pointer}
+    .app{min-height:100vh;display:grid;grid-template-columns:250px minmax(0,1fr)}
+    .sidebar{background:#fff;border-right:1px solid var(--line);padding:32px 20px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+    .logo{display:flex;align-items:center;gap:11px;margin:2px 10px 44px;font-size:23px;font-weight:800;letter-spacing:-1.2px}
+    .logo-mark{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:var(--blue);color:#fff;font-size:24px;line-height:1}
+    .side-label{color:#9ba4b6;font-size:11px;letter-spacing:1.5px;font-weight:800;text-transform:uppercase;padding:0 12px;margin-bottom:13px}
+    .nav{display:grid;gap:7px}.nav-btn{width:100%;text-align:left;display:flex;align-items:center;gap:12px;border:0;background:none;padding:13px 14px;border-radius:12px;font-weight:650;color:#69758c}
+    .nav-btn:hover{background:#f7f8fe;color:var(--ink)}.nav-btn.active{background:var(--blue-soft);color:var(--blue-dark)}
+    .nav-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .side-bottom{margin-top:auto;padding:18px 13px;color:var(--muted);font-size:12px;line-height:1.65;background:#f8f9fd;border:1px solid #f0f1f7;border-radius:14px}
+    .side-bottom strong{color:var(--ink)}
+    main{width:min(1300px,100%);margin:0 auto;padding:44px clamp(22px,4vw,66px) 70px}
+    .top-row{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:32px}
+    .eyebrow{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:9px}
+    h1,h2,h3,p{margin:0}h1{font-size:clamp(28px,3.1vw,42px);line-height:1.12;letter-spacing:-1.5px;font-weight:780;margin-bottom:12px}
+    .subtitle{font-size:15px;color:var(--muted)}
+    .primary-btn,.secondary-btn,.icon-btn{border:0;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;gap:9px;font-weight:700;transition:.18s background,.18s transform;white-space:nowrap}
+    .primary-btn{color:#fff;background:var(--blue);padding:13px 19px;box-shadow:0 5px 12px #4b64e81b}.primary-btn:hover{background:var(--blue-dark);transform:translateY(-1px)}
+    .secondary-btn{padding:10px 15px;background:var(--blue-soft);color:var(--blue-dark)}.secondary-btn:hover{background:#e3e8ff}
+    .icon-btn{width:34px;height:34px;background:#f4f6fb;border:1px solid var(--line);color:var(--ink)}.icon-btn:hover{background:#e8edfc}
+    .svg-icon{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+    .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:24px}
+    .metric,.panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 7px 25px rgba(35,56,105,.035)}
+    .metric{padding:24px;min-height:138px}.metric-head{color:var(--muted);font-size:13px;font-weight:650;display:flex;align-items:center;justify-content:space-between;gap:7px}.metric-symbol{display:grid;place-items:center;width:35px;height:35px;border-radius:10px;background:#f0f3fe;color:var(--blue)}
+    .metric-symbol.green{background:#e7f7f1;color:var(--green)}.metric-symbol.orange{background:#fff4e7;color:var(--amber)}
+    .metric-number{font-size:34px;letter-spacing:-1.2px;font-weight:800;margin-top:16px;line-height:1}
+    .dashboard-grid{display:grid;grid-template-columns:minmax(0,1.66fr) minmax(275px,.9fr);gap:22px;align-items:start}
+    .panel{padding:25px}.panel-title{font-weight:770;font-size:17px;letter-spacing:-.4px}.panel-subtitle{font-size:12px;color:var(--muted);margin-top:3px}
+    .panel-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}
+    .week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;margin-bottom:28px}
+    .day-chip{border:1px solid var(--line);background:#fff;border-radius:13px;padding:12px 3px 10px;text-align:center;display:grid;justify-items:center;gap:7px;min-width:0;color:var(--ink)}
+    .day-chip:hover{border-color:#b5c1ff;background:#f9faff}.day-chip.is-selected{background:var(--blue);border-color:var(--blue);color:white;box-shadow:0 4px 13px #4b64e82d}
+    .day-chip .day-name{font-size:11px;font-weight:750;text-transform:uppercase;color:var(--muted)}.day-chip.is-selected .day-name{color:#e8ecff}
+    .day-chip .day-number{font-size:19px;font-weight:790;line-height:1}.day-chip .day-dot{font-size:10px;color:var(--blue);min-height:15px}.day-chip.is-selected .day-dot{color:white}
+    .list-title{font-size:14px;font-weight:780;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .task-list{display:grid;gap:9px}.task-item{display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fbfcff;border:1px solid var(--line);border-radius:12px}
+    .task-check{width:22px;height:22px;min-width:22px;margin-top:2px;border:1.8px solid #abb5ca;border-radius:7px;background:white;color:white;display:grid;place-items:center;padding:0}
+    .task-check:hover{border-color:var(--green)}.task-check.done{background:var(--green);border-color:var(--green)}
+    .task-body{min-width:0;flex:1}.task-name{font-weight:720;font-size:13.5px;overflow-wrap:anywhere}.is-done .task-name{text-decoration:line-through;color:#9aa2b2}
+    .task-meta{display:flex;flex-wrap:wrap;align-items:center;gap:7px;color:var(--muted);font-size:11px;margin-top:6px}.task-desc{font-size:12px;color:var(--muted);margin-top:5px;overflow-wrap:anywhere;white-space:pre-wrap}
+    .priority{display:inline-flex;align-items:center;gap:4px;font-weight:650;border-radius:6px;font-size:10px;padding:2px 7px;background:#eef2fa;color:#6d7790}
+    .priority.alta{background:#fff0f0;color:#c64f57}.priority.media{background:#fff5e9;color:#ad7127}.priority.baja{background:#eaf6f2;color:#35876f}
+    .task-actions{display:flex;gap:4px}.task-action{width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:#8793aa}.task-action:hover{background:#e7ecfa;color:var(--blue-dark)}.task-action.danger:hover{background:#fff0f1;color:var(--red)}.task-action svg{width:15px;height:15px}
+    .empty{padding:30px 16px;border:1px dashed #d8deec;background:#fbfcff;border-radius:13px;text-align:center;color:var(--muted);font-size:13px}.empty .empty-icon{font-size:27px;margin-bottom:8px}.empty strong{display:block;font-size:14px;color:var(--ink);margin-bottom:3px}
+    .side-panels{display:grid;gap:20px}
+    .calendar-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}.calendar-controls{display:flex;gap:5px}
+    .cal-week,.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center}.cal-week{color:#9aa4b6;font-size:10px;font-weight:800;margin-bottom:8px}
+    .cal-cell{border:0;background:transparent;height:34px;min-width:0;border-radius:9px;color:#445068;font-size:12px;position:relative;padding:0}.cal-cell:hover{background:#f1f4ff}.cal-cell.outside{color:#c2c8d3}.cal-cell.today{outline:1px solid var(--blue);outline-offset:-2px;font-weight:750}.cal-cell.selected{background:var(--blue);color:white;outline:0}.cal-cell .dot{position:absolute;bottom:3px;left:calc(50% - 2px);width:4px;height:4px;background:var(--blue);border-radius:100%}.cal-cell.selected .dot{background:white}
+    .calendar-legend{display:flex;gap:9px;color:var(--muted);font-size:11px;margin-top:14px;align-items:center}.legend-dot{width:6px;height:6px;border-radius:50%;background:var(--blue)}
+    .help-panel{background:#f0f3ff;border-color:#e5eafa}.help-panel h3{font-size:14px;margin-bottom:8px}.help-panel p{color:#647395;font-size:12px;line-height:1.65}
+    .upcoming{margin-top:22px}.upcoming-list{display:grid;gap:10px}.upcoming-row{display:grid;grid-template-columns:74px minmax(0,1fr) auto;align-items:center;gap:10px;border:1px solid var(--line);border-radius:11px;padding:12px}
+    .upcoming-date{font-size:11px;color:var(--muted);font-weight:750}.upcoming-name{font-weight:700;font-size:13px;overflow-wrap:anywhere}.upcoming-done{text-decoration:line-through;color:#9aa2b2}
+    .form-wrap{max-width:760px}.form-panel{padding:32px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.field{display:grid;gap:8px;margin-bottom:22px}
+    .field label{font-weight:750;font-size:13px}.field input,.field select,.field textarea{background:#fff;border:1.5px solid #e0e5ef;color:var(--ink);outline:0;border-radius:11px;padding:12px 14px;width:100%;transition:border-color .15s,box-shadow .15s}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:#8999f2;box-shadow:0 0 0 4px #4b64e81a}.field textarea{min-height:122px;resize:vertical}.hint{color:var(--muted);font-size:12px}
+    .form-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}.create-tip{margin-top:20px;color:var(--muted);font-size:12px}
+    .toast{position:fixed;right:24px;bottom:24px;background:#193047;color:white;border-radius:12px;padding:12px 17px;box-shadow:0 12px 28px #0002;z-index:10;font-size:13px;max-width:min(90vw,360px)}
+    [hidden]{display:none!important}
+    @media(max-width:1050px){.app{grid-template-columns:205px 1fr}.dashboard-grid{grid-template-columns:1fr}.side-panels{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.panel{padding:20px}}
+    @media(max-width:700px){.app{display:block}.sidebar{position:sticky;top:0;height:auto;padding:10px 15px;flex-direction:row;justify-content:space-between;align-items:center;z-index:4;box-shadow:0 2px 12px #00000008}.logo{margin:0;font-size:19px}.logo-mark{width:30px;height:30px;font-size:19px}.side-label,.side-bottom{display:none}.nav{display:flex;gap:3px}.nav-btn{padding:9px 10px;gap:5px;font-size:12px}.nav-btn svg{width:15px;height:15px}main{padding:28px 15px 55px}.top-row{flex-wrap:wrap;gap:15px}.metrics{gap:9px}.metric{padding:15px;min-height:105px}.metric-number{font-size:27px}.metric-head{font-size:11px}.metric-symbol{width:26px;height:26px}.metric-symbol svg{width:15px}.week-grid{gap:4px}.day-chip{padding:9px 1px}.day-chip .day-number{font-size:16px}.day-chip .day-name{font-size:9px}.day-chip .day-dot{font-size:9px}.side-panels{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr;gap:0}.form-panel{padding:20px}.upcoming-row{grid-template-columns:60px minmax(0,1fr) auto}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><rect x="14" y="14" width="7" height="7" rx="1.4"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M15 4l5 5L10 19H5v-5z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 4h4M6 7l1 13h10l1-13M10 11v6M14 11v6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="m10 6 6 6-6 6"/></symbol>
+  </svg>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo"><span class="logo-mark">✓</span>en orden<span style="color:var(--blue)">.</span></div>
+      <div class="side-label">Mi espacio</div>
+      <nav class="nav" aria-label="Navegación principal">
+        <button class="nav-btn active" type="button" data-view="dashboard"><svg class="svg-icon"><use href="#i-grid"/></svg> Mi dashboard</button>
+        <button class="nav-btn" type="button" data-view="create"><svg class="svg-icon"><use href="#i-plus"/></svg> Nueva tarea</button>
+      </nav>
+      <div class="side-bottom"><strong>Tu espacio personal</strong><br>Las tareas se guardan en este navegador. No se envían a ningún servidor.</div>
+    </aside>
+
+    <main>
+      <section id="dashboard-view">
+        <header class="top-row">
+          <div><p class="eyebrow">PLANIFICACIÓN SEMANAL</p><h1>Organiza tu semana.</h1><p class="subtitle" id="week-range">Tus próximos siete días, de un vistazo.</p></div>
+          <button type="button" class="primary-btn" data-view="create"><svg class="svg-icon"><use href="#i-plus"/></svg> Nueva tarea</button>
+        </header>
+        <div class="metrics" aria-label="Resumen de tareas">
+          <div class="metric"><div class="metric-head">Pendientes esta semana <span class="metric-symbol"><svg class="svg-icon"><use href="#i-clock"/></svg></span></div><div class="metric-number" id="metric-pending">0</div></div>
+          <div class="metric"><div class="metric-head">Completadas esta semana <span class="metric-symbol green"><svg class="svg-icon"><use href="#i-check"/></svg></span></div><div class="metric-number" id="metric-done">0</div></div>
+          <div class="metric"><div class="metric-head">Para hoy <span class="metric-symbol orange"><svg class="svg-icon"><use href="#i-calendar"/></svg></span></div><div class="metric-number" id="metric-today">0</div></div>
+        </div>
+        <div class="dashboard-grid">
+          <div>
+            <section class="panel" aria-label="Agenda de la semana">
+              <div class="panel-header"><div><h2 class="panel-title">Tu agenda</h2><p class="panel-subtitle">Selecciona un día para ver sus tareas</p></div><span class="priority baja" id="week-count">0 tareas</span></div>
+              <div class="week-grid" id="week-grid" aria-label="Próximos siete días"></div>
+              <div class="list-title"><span id="selected-day-label">Tareas de hoy</span><span id="selected-day-count" style="color:var(--muted);font-size:12px">0 tareas</span></div>
+              <div id="selected-tasks" class="task-list"></div>
+            </section>
+            <section class="panel upcoming" aria-label="Próximas tareas">
+              <div class="panel-header"><div><h2 class="panel-title">Próximas tareas</h2><p class="panel-subtitle">Todas las tareas con fecha en los siguientes 7 días</p></div></div>
+              <div id="upcoming-list" class="upcoming-list"></div>
+            </section>
+          </div>
+          <div class="side-panels">
+            <section class="panel" aria-label="Calendario mensual">
+              <div class="calendar-header"><h2 class="panel-title" id="calendar-title">Calendario</h2><div class="calendar-controls"><button type="button" class="icon-btn" data-month="-1" aria-label="Mes anterior"><svg class="svg-icon"><use href="#i-arrow-left"/></svg></button><button type="button" class="icon-btn" data-month="1" aria-label="Mes siguiente"><svg class="svg-icon"><use href="#i-arrow-right"/></svg></button></div></div>
+              <div class="cal-week"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+              <div class="cal-grid" id="calendar-grid"></div>
+              <div class="calendar-legend"><span class="legend-dot"></span> Día con tareas</div>
+            </section>
+            <section class="panel help-panel"><h3>Un plan, menos estrés ✨</h3><p>Apunta tus tareas, elige una fecha y visualiza lo que viene. Puedes editarlas, marcarlas como terminadas o eliminarlas cuando quieras.</p></section>
+          </div>
+        </div>
+      </section>
+
+      <section id="create-view" hidden>
+        <header class="top-row"><div><p class="eyebrow">MI LISTA DE TAREAS</p><h1 id="form-title">Crear una tarea.</h1><p class="subtitle">Empieza por lo importante. El resto viene después.</p></div><button type="button" class="secondary-btn" data-view="dashboard"><svg class="svg-icon"><use href="#i-arrow-left"/></svg> Volver al dashboard</button></header>
+        <div class="form-wrap"><div class="panel form-panel">
+          <form id="task-form">
+            <div class="field"><label for="task-title">¿Qué tienes que hacer? *</label><input id="task-title" name="title" type="text" placeholder="Ej.: Preparar la presentación de ciencias" maxlength="120" required autocomplete="off"></div>
+            <div class="field"><label for="task-description">Descripción (opcional)</label><textarea id="task-description" name="description" placeholder="Añade los detalles que quieras recordar..." maxlength="700"></textarea></div>
+            <div class="form-grid">
+              <div class="field"><label for="task-date">Fecha límite *</label><input id="task-date" name="date" type="date" required></div>
+              <div class="field"><label for="task-priority">Prioridad</label><select id="task-priority" name="priority"><option value="media">Media</option><option value="alta">Alta</option><option value="baja">Baja</option></select></div>
+            </div>
+            <div class="form-actions"><button type="submit" class="primary-btn" id="submit-task"><svg class="svg-icon"><use href="#i-check"/></svg> Guardar tarea</button><button type="button" class="secondary-btn" id="cancel-task">Cancelar</button></div>
+          </form>
+        </div><p class="create-tip">* Campos obligatorios. Solo tú verás estas tareas en este navegador y dispositivo.</p></div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <script>
+  // 1. Almacenamiento: ninguna información se envía fuera del navegador.
+  const STORAGE_KEY = 'en-orden-tareas-v1';
+  const $ = (selector) => document.querySelector(selector);
+  const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+  const pad = (num) => String(num).padStart(2, '0');
+  const asISO = (date) => `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+  const asDate = (iso) => new Date(`${iso}T12:00:00`); // mediodía evita desfases de huso horario
+  const todayISO = () => asISO(new Date());
+  const shiftISO = (iso, days) => { const d = asDate(iso); d.setDate(d.getDate()+days); return asISO(d); };
+  const format = (iso, options) => new Intl.DateTimeFormat('es-ES', options).format(asDate(iso));
+  const weekDates = () => Array.from({length:7},(_,i)=>shiftISO(todayISO(),i));
+  const html = (str) => String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const priorityNames = {alta:'Alta',media:'Media',baja:'Baja'};
+  const isValidDate = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s) && asISO(asDate(s)) === s;
+  function loadTasks(){
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      if(!Array.isArray(saved)) return [];
+      return saved.filter(t => t && typeof t.id==='string' && typeof t.title==='string' && isValidDate(t.date))
+        .map(t => ({id:t.id,title:t.title,description:String(t.description||''),date:t.date,priority:priorityNames[t.priority]?t.priority:'media',done:Boolean(t.done)}));
+    } catch(error){console.warn('No se han podido recuperar las tareas:',error); return []}
+  }
+  let tasks = loadTasks();
+  let selectedDay = todayISO();
+  let displayedMonth = new Date(new Date().getFullYear(),new Date().getMonth(),1,12);
+  let editingId = null;
+  let toastTimer = null;
+  const sortTasks = (a,b) => a.date.localeCompare(b.date) || ({alta:0,media:1,baja:2}[a.priority]-{alta:0,media:1,baja:2}[b.priority]) || a.title.localeCompare(b.title,'es');
+  function persist(next){
+    try {localStorage.setItem(STORAGE_KEY,JSON.stringify(next));tasks=next;return true}
+    catch(error){notify('No se ha podido guardar: revisa el espacio del navegador.');return false}
+  }
+  function notify(message){const toast=$('#toast');toast.textContent=message;toast.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.hidden=true,3200)}
+  const icon = (name) => `<svg class="svg-icon" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+  const taskCountLabel = n => `${n} ${n===1?'tarea':'tareas'}`;
+
+  // 2. Vistas: son dos pantallas dentro del mismo archivo HTML.
+  function showView(view){
+    const create=view==='create';
+    $('#dashboard-view').hidden=create;$('#create-view').hidden=!create;
+    $$('.nav-btn').forEach(btn=>{btn.classList.toggle('active',btn.dataset.view===view);if(btn.dataset.view===view)btn.setAttribute('aria-current','page');else btn.removeAttribute('aria-current')});
+    if(!create) renderDashboard();
+    window.scrollTo({top:0,behavior:'instant'});
+  }
+  function navigate(view){const hash=view==='create'?'nueva':'resumen';if(location.hash!==`#${hash}`)location.hash=hash;showView(view)}
+  function resetForm(){editingId=null;$('#task-form').reset();$('#task-date').value=todayISO();$('#form-title').textContent='Crear una tarea.';$('#submit-task').innerHTML=icon('check')+' Guardar tarea'}
+  function openCreate(){resetForm();navigate('create');$('#task-title').focus()}
+  function editTask(id){
+    const t=tasks.find(item=>item.id===id);if(!t)return;
+    editingId=id;$('#task-title').value=t.title;$('#task-description').value=t.description;$('#task-date').value=t.date;$('#task-priority').value=t.priority;
+    $('#form-title').textContent='Editar tarea.';$('#submit-task').innerHTML=icon('check')+' Guardar cambios';navigate('create');$('#task-title').focus();
+  }
+
+  // 3. Panel semanal y calendario.
+  function renderDashboard(){
+    const week=weekDates(),start=week[0],end=week[6];
+    const seven=tasks.filter(t=>t.date>=start && t.date<=end);
+    $('#week-range').textContent=`Del ${format(start,{day:'numeric',month:'long'})} al ${format(end,{day:'numeric',month:'long',year:'numeric'})} · Próximos 7 días`;
+    $('#metric-pending').textContent=seven.filter(t=>!t.done).length;
+    $('#metric-done').textContent=seven.filter(t=>t.done).length;
+    $('#metric-today').textContent=tasks.filter(t=>t.date===todayISO()&&!t.done).length;
+    $('#week-count').textContent=taskCountLabel(seven.length);
+    $('#week-grid').innerHTML=week.map(date=>{
+      const total=tasks.filter(t=>t.date===date&&!t.done).length;
+      return `<button type="button" class="day-chip ${selectedDay===date?'is-selected':''}" data-date="${date}" aria-pressed="${selectedDay===date}"><span class="day-name">${html(format(date,{weekday:'short'}).replace('.',''))}</span><span class="day-number">${asDate(date).getDate()}</span><span class="day-dot">${total?`${total} ●`:'·'}</span></button>`;
+    }).join('');
+    renderSelected();renderUpcoming(seven);renderCalendar();
+  }
+  function renderSelected(){
+    const day=tasks.filter(t=>t.date===selectedDay).sort(sortTasks);
+    $('#selected-day-label').textContent=selectedDay===todayISO()?'Tareas de hoy':format(selectedDay,{weekday:'long',day:'numeric',month:'long'});
+    $('#selected-day-count').textContent=taskCountLabel(day.length);
+    $('#selected-tasks').innerHTML=day.length ? day.map(t=>`
+      <article class="task-item ${t.done?'is-done':''}">
+        <button type="button" class="task-check ${t.done?'done':''}" data-action="toggle" data-id="${html(t.id)}" aria-label="${t.done?'Marcar pendiente':'Marcar completada'}: ${html(t.title)}">${t.done?icon('check'):''}</button>
+        <div class="task-body"><div class="task-name">${html(t.title)}</div>${t.description?`<div class="task-desc">${html(t.description)}</div>`:''}<div class="task-meta"><span class="priority ${t.priority}">${priorityNames[t.priority]}</span>${t.done?'<span>Completada</span>':'<span>Pendiente</span>'}</div></div>
+        <div class="task-actions"><button type="button" class="task-action" data-action="edit" data-id="${html(t.id)}" title="Editar tarea" aria-label="Editar tarea: ${html(t.title)}">${icon('edit')}</button><button type="button" class="task-action danger" data-action="delete" data-id="${html(t.id)}" title="Eliminar tarea" aria-label="Eliminar tarea: ${html(t.title)}">${icon('trash')}</button></div>
+      </article>`).join('') : `<div class="empty"><div class="empty-icon">☀️</div><strong>No hay tareas este día</strong>¡Una buena ocasión para descansar o adelantarte!</div>`;
+  }
+  function renderUpcoming(seven){
+    const ordered=[...seven].sort(sortTasks);
+    $('#upcoming-list').innerHTML=ordered.length?ordered.map(t=>`
+      <div class="upcoming-row"><span class="upcoming-date">${html(format(t.date,{day:'numeric',month:'short'}))}</span><span class="upcoming-name ${t.done?'upcoming-done':''}">${html(t.title)}</span><span class="priority ${t.priority}">${priorityNames[t.priority]}</span></div>`).join(''):`<div class="empty"><strong>Aún no hay tareas para esta semana</strong>Crea una tarea y aparecerá aquí automáticamente.</div>`;
+  }
+  function renderCalendar(){
+    const y=displayedMonth.getFullYear(),m=displayedMonth.getMonth();
+    const first=(new Date(y,m,1,12).getDay()+6)%7; // semana comienza el lunes
+    const shown=42;
+    const monthLabel=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'}).format(displayedMonth);
+    $('#calendar-title').textContent=monthLabel.charAt(0).toUpperCase()+monthLabel.slice(1);
+    const days=[];
+    for(let i=0;i<shown;i++){
+      const d=new Date(y,m,1-first+i,12),iso=asISO(d),hasTasks=tasks.some(t=>t.date===iso);
+      days.push(`<button type="button" class="cal-cell ${d.getMonth()!==m?'outside':''} ${iso===todayISO()?'today':''} ${iso===selectedDay?'selected':''}" data-date="${iso}" aria-label="${html(format(iso,{weekday:'long',day:'numeric',month:'long'}))}${hasTasks?', con tareas':''}" aria-pressed="${iso===selectedDay}">${d.getDate()}${hasTasks?'<span class="dot"></span>':''}</button>`);
+    }
+    $('#calendar-grid').innerHTML=days.join('');
+  }
+
+  // 4. Interacciones del usuario.
+  document.addEventListener('click',(event)=>{
+    const viewBtn=event.target.closest('[data-view]');
+    if(viewBtn){if(viewBtn.dataset.view==='create')openCreate();else navigate('dashboard');return}
+    const dateBtn=event.target.closest('[data-date]');
+    if(dateBtn){selectedDay=dateBtn.dataset.date;const d=asDate(selectedDay);displayedMonth=new Date(d.getFullYear(),d.getMonth(),1,12);renderDashboard();return}
+    const monthBtn=event.target.closest('[data-month]');
+    if(monthBtn){displayedMonth=new Date(displayedMonth.getFullYear(),displayedMonth.getMonth()+Number(monthBtn.dataset.month),1,12);renderCalendar();return}
+    const actionBtn=event.target.closest('[data-action]');
+    if(actionBtn){
+      const {action,id}=actionBtn.dataset, t=tasks.find(item=>item.id===id);if(!t)return;
+      if(action==='toggle'){if(persist(tasks.map(item=>item.id===id?{...item,done:!item.done}:item)))renderDashboard()}
+      if(action==='edit')editTask(id);
+      if(action==='delete' && confirm(`¿Eliminar la tarea «${t.title}»?`)){if(persist(tasks.filter(item=>item.id!==id))){renderDashboard();notify('Tarea eliminada')}}
+    }
+  });
+  $('#task-form').addEventListener('submit',(event)=>{
+    event.preventDefault();
+    const title=$('#task-title').value.trim(),description=$('#task-description').value.trim(),date=$('#task-date').value,priority=$('#task-priority').value;
+    if(!title){$('#task-title').focus();notify('Escribe un título para la tarea.');return}
+    if(!isValidDate(date)){notify('Selecciona una fecha válida.');return}
+    if(!priorityNames[priority])return;
+    const updated=editingId ? tasks.map(t=>t.id===editingId?{...t,title,description,date,priority}:t)
+      : [...tasks,{id:(self.crypto&&crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`),title,description,date,priority,done:false}];
+    if(!persist(updated))return;
+    selectedDay=date;displayedMonth=new Date(asDate(date).getFullYear(),asDate(date).getMonth(),1,12);
+    const message=editingId?'Cambios guardados':'¡Tarea creada correctamente!';resetForm();navigate('dashboard');notify(message);
+  });
+  $('#cancel-task').addEventListener('click',()=>{resetForm();navigate('dashboard')});
+  window.addEventListener('hashchange',()=>showView(location.hash==='#nueva'?'create':'dashboard'));
+  $('#task-date').value=todayISO();
+  showView(location.hash==='#nueva'?'create':'dashboard');
+  </script>
+</body>
+</html>
